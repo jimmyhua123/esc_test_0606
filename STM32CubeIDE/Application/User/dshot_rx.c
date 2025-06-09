@@ -1,6 +1,8 @@
 #include "dshot_rx.h"
-#include "tim.h"
-#include "usart.h"
+//#include "tim.h"
+//#include "usart.h"
+
+
 #include <stdbool.h>
 
 /* ---------- 參數 ---------- */

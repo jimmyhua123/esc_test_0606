@@ -1,5 +1,5 @@
 Middlewares/MotorControl/sto_pll_speed_pos_fdbk.o: \
- C:/Users/ray_juan/.st_workbench/projects/test_0602/MCSDK_v6.3.2-Full/MotorControl/MCSDK/MCLib/Any/Src/sto_pll_speed_pos_fdbk.c \
+ C:/Users/Jimmy1_Hua/Desktop/BLDC/test_0602/MCSDK_v6.3.2-Full/MotorControl/MCSDK/MCLib/Any/Src/sto_pll_speed_pos_fdbk.c \
  ../../MCSDK_v6.3.2-Full/MotorControl/MCSDK/MCLib/Any/Inc/sto_pll_speed_pos_fdbk.h \
  ../../MCSDK_v6.3.2-Full/MotorControl/MCSDK/MCLib/Any/Inc/speed_pos_fdbk.h \
  ../../Inc/mc_type.h ../../Inc/mc_stm_types.h \

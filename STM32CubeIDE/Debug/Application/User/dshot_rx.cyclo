@@ -1,0 +1,5 @@
+../Application/User/dshot_rx.c:16:13:dshot_rx_dma_complete	1
+../Application/User/dshot_rx.c:28:6:dshot_rx_init	1
+../Application/User/dshot_rx.c:45:6:dshot_rx_available	1
+../Application/User/dshot_rx.c:51:5:dshot_rx_read	3
+../Application/User/dshot_rx.c:98:6:dshot_rx_service	5

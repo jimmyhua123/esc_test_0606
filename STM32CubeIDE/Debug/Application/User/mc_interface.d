@@ -1,5 +1,5 @@
 Application/User/mc_interface.o: \
- C:/Users/ray_juan/.st_workbench/projects/test_0602/Src/mc_interface.c \
+ C:/Users/Jimmy1_Hua/Desktop/BLDC/test_0602/Src/mc_interface.c \
  ../../Inc/mc_math.h ../../Inc/mc_type.h ../../Inc/mc_stm_types.h \
  ../../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_ll_bus.h \
  ../../Drivers/CMSIS/Device/ST/STM32G4xx/Include/stm32g4xx.h \

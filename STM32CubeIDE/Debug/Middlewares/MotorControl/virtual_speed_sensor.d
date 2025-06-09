@@ -1,5 +1,5 @@
 Middlewares/MotorControl/virtual_speed_sensor.o: \
- C:/Users/ray_juan/.st_workbench/projects/test_0602/MCSDK_v6.3.2-Full/MotorControl/MCSDK/MCLib/Any/Src/virtual_speed_sensor.c \
+ C:/Users/Jimmy1_Hua/Desktop/BLDC/test_0602/MCSDK_v6.3.2-Full/MotorControl/MCSDK/MCLib/Any/Src/virtual_speed_sensor.c \
  ../../MCSDK_v6.3.2-Full/MotorControl/MCSDK/MCLib/Any/Inc/virtual_speed_sensor.h \
  ../../MCSDK_v6.3.2-Full/MotorControl/MCSDK/MCLib/Any/Inc/speed_pos_fdbk.h \
  ../../Inc/mc_type.h ../../Inc/mc_stm_types.h \

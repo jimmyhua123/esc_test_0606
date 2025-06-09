@@ -1,0 +1,3 @@
+../Application/User/dshot.c:102:13:dshot_dma_tc_callback	6
+../Application/User/dshot.c:40:6:dshot_init	3
+../Application/User/dshot.c:50:6:dshot_write	1

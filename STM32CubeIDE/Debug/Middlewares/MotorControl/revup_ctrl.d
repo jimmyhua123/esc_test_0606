@@ -1,5 +1,5 @@
 Middlewares/MotorControl/revup_ctrl.o: \
- C:/Users/ray_juan/.st_workbench/projects/test_0602/MCSDK_v6.3.2-Full/MotorControl/MCSDK/MCLib/Any/Src/revup_ctrl.c \
+ C:/Users/Jimmy1_Hua/Desktop/BLDC/test_0602/MCSDK_v6.3.2-Full/MotorControl/MCSDK/MCLib/Any/Src/revup_ctrl.c \
  ../../MCSDK_v6.3.2-Full/MotorControl/MCSDK/MCLib/Any/Inc/revup_ctrl.h \
  ../../Inc/mc_type.h ../../Inc/mc_stm_types.h \
  ../../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_ll_bus.h \

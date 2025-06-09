@@ -1,5 +1,5 @@
 Drivers/CMSIS/system_stm32g4xx.o: \
- C:/Users/ray_juan/.st_workbench/projects/test_0602/Src/system_stm32g4xx.c \
+ C:/Users/Jimmy1_Hua/Desktop/BLDC/test_0602/Src/system_stm32g4xx.c \
  ../../Drivers/CMSIS/Device/ST/STM32G4xx/Include/stm32g4xx.h \
  ../../Drivers/CMSIS/Device/ST/STM32G4xx/Include/stm32g431xx.h \
  ../../Drivers/CMSIS/Include/core_cm4.h \

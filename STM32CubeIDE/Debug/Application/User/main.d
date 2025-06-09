@@ -1,6 +1,6 @@
 Application/User/main.o: \
- C:/Users/ray_juan/.st_workbench/projects/test_0602/Src/main.c \
- ../../Inc/main.h ../../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal.h \
+ C:/Users/Jimmy1_Hua/Desktop/BLDC/test_0602/Src/main.c ../../Inc/main.h \
+ ../../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal.h \
  ../../Inc/stm32g4xx_hal_conf.h \
  ../../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_rcc.h \
  ../../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_def.h \

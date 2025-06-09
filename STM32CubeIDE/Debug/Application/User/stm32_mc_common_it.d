@@ -1,5 +1,5 @@
 Application/User/stm32_mc_common_it.o: \
- C:/Users/ray_juan/.st_workbench/projects/test_0602/Src/stm32_mc_common_it.c \
+ C:/Users/Jimmy1_Hua/Desktop/BLDC/test_0602/Src/stm32_mc_common_it.c \
  ../../Inc/mc_config.h \
  ../../MCSDK_v6.3.2-Full/MotorControl/MCSDK/MCLib/Any/Inc/pid_regulator.h \
  ../../Inc/mc_type.h ../../Inc/mc_stm_types.h \
