@@ -31,5 +31,62 @@ if (dshot_rx_get_throttle(&val) == 0) {
     g_throttle = val;  // 成功取得解析後油門
 }
 
-使用 stm32 motorControl workbench_6.3.2 生成的code ，加上我寫的dshot.c dshot_rx.c 使用pa15 的pwn c
+```
+
+### Code
+
+```
+DMA_HandleTypeDef hdma_tim2_ch2;
+void DMA1_Channel4_IRQHandler(void) //for dma tim2_ch2
+{
+    HAL_DMA_IRQHandler(&hdma_tim2_ch2);
+}
+  HAL_NVIC_SetPriority(DMA1_Channel4_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel4_IRQn);
+
+in MX_TIM2_Init
+
+  __HAL_RCC_GPIOA_CLK_ENABLE();
+
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
+  GPIO_InitStruct.Pin = GPIO_PIN_15;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+  GPIO_InitStruct.Alternate = GPIO_AF1_TIM2;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+	hdma_tim2_ch1.Init.Request  = DMA_REQUEST_TIM2_CH1;  //g4xx 使用DMAMUX 必須加上這行
+	hdma_tim2_ch2.Init.Request  = DMA_REQUEST_TIM2_CH2;
+
+
+  /* 把tim2ch2掛上dma1ch4 */
+  hdma_tim2_ch2.Instance                 = DMA1_Channel4;
+  hdma_tim2_ch2.Init.Direction           = DMA_PERIPH_TO_MEMORY;
+  hdma_tim2_ch2.Init.PeriphInc           = DMA_PINC_DISABLE;
+  hdma_tim2_ch2.Init.MemInc              = DMA_MINC_ENABLE;
+  hdma_tim2_ch2.Init.PeriphDataAlignment = DMA_PDATAALIGN_HALFWORD;
+  hdma_tim2_ch2.Init.MemDataAlignment    = DMA_MDATAALIGN_HALFWORD;
+  hdma_tim2_ch2.Init.Mode                = DMA_NORMAL;//!
+  hdma_tim2_ch2.Init.Priority            = DMA_PRIORITY_HIGH;
+  if (HAL_DMA_Init(&hdma_tim2_ch2) != HAL_OK)
+      Error_Handler();
+  /* 將 Channel4 掛到 TIM2 的 CC2  */
+  __HAL_LINKDMA(&htim2, hdma[TIM_DMA_ID_CC2], hdma_tim2_ch2);
+
+
+  // === TIM2_CH1 對應 DMA1_Channel3 (Rise Edge 用) ===
+  hdma_tim2_ch1.Instance                 = DMA1_Channel3;
+  hdma_tim2_ch1.Init.Direction           = DMA_PERIPH_TO_MEMORY;
+  hdma_tim2_ch1.Init.PeriphInc           = DMA_PINC_DISABLE;
+  hdma_tim2_ch1.Init.MemInc              = DMA_MINC_ENABLE;
+  hdma_tim2_ch1.Init.PeriphDataAlignment = DMA_PDATAALIGN_HALFWORD;
+  hdma_tim2_ch1.Init.MemDataAlignment    = DMA_MDATAALIGN_HALFWORD;
+  hdma_tim2_ch1.Init.Mode                = DMA_NORMAL;
+  hdma_tim2_ch1.Init.Priority            = DMA_PRIORITY_HIGH;
+  if (HAL_DMA_Init(&hdma_tim2_ch1) != HAL_OK)
+      Error_Handler();
+
+  // 連結 TIM2_CH1 → DMA1_Channel3
+  __HAL_LINKDMA(&htim2, hdma[TIM_DMA_ID_CC1], hdma_tim2_ch1);
 ```
