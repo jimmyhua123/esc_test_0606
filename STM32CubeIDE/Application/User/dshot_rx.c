@@ -1,9 +1,12 @@
 #include "dshot_rx.h"
 //#include "tim.h"
 //#include "usart.h"
-
+#include "dshot.h"
 
 #include <stdbool.h>
+#include <stdio.h>
+#include <string.h>
+
 
 /* ---------- 參數 ---------- */
 #define RX_BITS     16 //
@@ -37,6 +40,7 @@ void dshot_rx_init(void)
 
     /* 2. 再掛 callback（**順序非常重要**） */
     htim2.hdma[TIM_DMA_ID_CC1]->XferCpltCallback = dshot_rx_dma_complete;
+    htim2.hdma[TIM_DMA_ID_CC2]->XferCpltCallback = NULL;   // or 不設定
 
     __HAL_TIM_ENABLE_DMA(Dshot_TIM, TIM_DMA_CC1 | TIM_DMA_CC2);
 }
@@ -44,6 +48,7 @@ void dshot_rx_init(void)
 /* ---------- 狀態 ---------- */
 bool dshot_rx_available(void)
 {
+
     return frame_ready;
 }
 
@@ -51,6 +56,7 @@ bool dshot_rx_available(void)
 int dshot_rx_read(uint16_t *packet_out)
 {
     if (!frame_ready) return -1;
+
 
     uint32_t sum = 0;
     for (int i = 1; i < RX_BITS; ++i)   // 只加 index 1-15，共 15 筆，不含 gap
@@ -100,10 +106,13 @@ void dshot_rx_service(UART_HandleTypeDef *huart)
 //    char debug_msg[] = ">>> enter dshot_rx_service\n";
 //    HAL_UART_Transmit(huart, (uint8_t*)debug_msg, sizeof(debug_msg)-1, HAL_MAX_DELAY);
     if (!dshot_rx_available()) {
-//        char no_frame[] = "No frame ready\n";
-//        HAL_UART_Transmit(huart, (uint8_t*)no_frame, sizeof(no_frame)-1, HAL_MAX_DELAY);
+//        char no_frame[] = "in dshot_rx_service No frame ready  \n";
+//        HAL_UART_Transmit(&huart2, (uint8_t*)no_frame, sizeof(no_frame)-1, HAL_MAX_DELAY);
+//        HAL_Delay(1);
         return;
     }
+
+
 
     uint16_t pkt;
     if (dshot_rx_read(&pkt) != 0) return;        /* CRC 錯 */
@@ -118,9 +127,9 @@ void dshot_rx_service(UART_HandleTypeDef *huart)
 
     /* ---------- 判斷 DSHOT 等級 ---------- */
     const char *rate;
-    if      (avg > 360) rate = "150";
-    else if (avg > 180) rate = "300";
-    else if (avg > 90)  rate = "600";
+    if      (avg > 180) rate = "150";
+    else if (avg > 90)  rate = "300";
+    else if (avg > 45)  rate = "600";
     else                rate = "1200";
 
 
@@ -136,13 +145,35 @@ void dshot_rx_service(UART_HandleTypeDef *huart)
 
     /* ① 原始封包 */
 //    n = sprintf(buf, "PKT=   HEX: 0x%04X \nDEC:(%u) \nBIN:%s\r\n", pkt, pkt, bin);
-    n = sprintf(buf, "PKT= BIN:%s\r\n",  bin);
-    HAL_UART_Transmit(huart, (uint8_t*)buf, n, HAL_MAX_DELAY);
+//    n = sprintf(buf, "in dshot_rx_service PKT= BIN:%s\r\n",  bin);
+//    HAL_UART_Transmit(huart, (uint8_t*)buf, n, HAL_MAX_DELAY);
+//    HAL_Delay(1);
+
 
     /* ② 解碼結果 */
     uint16_t throttle = pkt >> 5;            /* 11-bit throttle */
     uint8_t  tel_flag = (pkt >> 4) & 0x1;
 
-    n = sprintf(buf, "DSHOT%s TH=%u TEL=%u\r\n", rate,throttle, tel_flag);
-    HAL_UART_Transmit(huart, (uint8_t*)buf, n, HAL_MAX_DELAY);
+//    n = sprintf(buf, "in dshot_rx_service DSHOT%s TH=%u TEL=%u\r\n", rate,throttle, tel_flag);
+//    HAL_UART_Transmit(huart, (uint8_t*)buf, n, HAL_MAX_DELAY);
+//    HAL_Delay(1);
+
+}
+
+/* ---------------------------------------------------------------
+ *  dshot_rx_get_throttle()
+ *  作用：如果有新封包且 CRC 正確 → 解析 11-bit Throttle
+ *        throttle_out 取值範圍 0-2047，成功回傳 0
+ *        若無新封包 / CRC 錯 / 其他錯誤 → 回傳 -1
+ * ------------------------------------------------------------- */
+int dshot_rx_get_throttle(uint16_t *throttle_out)
+{
+    if (throttle_out == NULL) return -1;
+    if (!dshot_rx_available()) return -1;      /* 還沒收滿一 frame */
+
+    uint16_t pkt;
+    if (dshot_rx_read(&pkt) != 0) return -1;   /* CRC 錯 */
+
+    *throttle_out = pkt >> 5;                  /* 取 11-bit TH */
+    return 0;
 }

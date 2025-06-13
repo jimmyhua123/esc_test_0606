@@ -10,10 +10,12 @@
 #define __DSHOT_H__
 
 
-#include "tim.h"    	// header from stm32cubemx code generate
+//#include "tim.h"    	// header from stm32cubemx code generate
 #include <stdbool.h>	
 #include <math.h>		// lrintf
+#include "stm32g4xx_hal.h"  // for UART_HandleTypeDef, TIM_HandleTypeDef
 
+extern TIM_HandleTypeDef htim1;
 
 /* User Configuration */
 // Timer Clock

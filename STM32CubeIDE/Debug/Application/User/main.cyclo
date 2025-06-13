@@ -1,3 +1,4 @@
-C:/Users/Jimmy1_Hua/Desktop/BLDC/test_0602/Src/main.c:159:6:SystemClock_Config	3
-C:/Users/Jimmy1_Hua/Desktop/BLDC/test_0602/Src/main.c:98:5:main	34
-C:/Users/Jimmy1_Hua/Desktop/BLDC/test_0602/Src/main.c:889:6:Error_Handler	1
+C:/Users/Jimmy1_Hua/Desktop/BLDC/test_0602/Src/main.c:121:6:DMA1_Channel4_IRQHandler	1
+C:/Users/Jimmy1_Hua/Desktop/BLDC/test_0602/Src/main.c:276:6:SystemClock_Config	3
+C:/Users/Jimmy1_Hua/Desktop/BLDC/test_0602/Src/main.c:133:5:main	43
+C:/Users/Jimmy1_Hua/Desktop/BLDC/test_0602/Src/main.c:1128:6:Error_Handler	1

@@ -1,5 +1,6 @@
-../Application/User/dshot_rx.c:16:13:dshot_rx_dma_complete	1
-../Application/User/dshot_rx.c:28:6:dshot_rx_init	1
-../Application/User/dshot_rx.c:45:6:dshot_rx_available	1
-../Application/User/dshot_rx.c:51:5:dshot_rx_read	3
-../Application/User/dshot_rx.c:98:6:dshot_rx_service	5
+../Application/User/dshot_rx.c:19:13:dshot_rx_dma_complete	1
+../Application/User/dshot_rx.c:31:6:dshot_rx_init	1
+../Application/User/dshot_rx.c:49:6:dshot_rx_available	1
+../Application/User/dshot_rx.c:56:5:dshot_rx_read	3
+../Application/User/dshot_rx.c:104:6:dshot_rx_service	3
+../Application/User/dshot_rx.c:169:5:dshot_rx_get_throttle	4

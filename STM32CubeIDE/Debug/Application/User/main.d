@@ -83,6 +83,7 @@ Application/User/main.o: \
  ../../Inc/parameters_conversion.h ../../Inc/mc_math.h \
  ../../Inc/parameters_conversion_g4xx.h ../../Inc/drive_parameters.h \
  ../../Inc/power_stage_parameters.h ../../Inc/pmsm_motor_parameters.h \
+ ../../Inc/mc_api.h ../../Inc/dshot_rx.h ../../Inc/dshot.h \
  ../../Inc/mc_api.h
 ../../Inc/main.h:
 ../../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal.h:
@@ -175,4 +176,7 @@ Application/User/main.o: \
 ../../Inc/drive_parameters.h:
 ../../Inc/power_stage_parameters.h:
 ../../Inc/pmsm_motor_parameters.h:
+../../Inc/mc_api.h:
+../../Inc/dshot_rx.h:
+../../Inc/dshot.h:
 ../../Inc/mc_api.h:

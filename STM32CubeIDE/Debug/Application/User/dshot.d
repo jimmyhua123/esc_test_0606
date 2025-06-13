@@ -1,5 +1,4 @@
-Application/User/dshot.o: ../Application/User/dshot.c \
- ../Application/User/dshot.h \
+Application/User/dshot.o: ../Application/User/dshot.c ../../Inc/dshot.h \
  ../../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal.h \
  ../../Inc/stm32g4xx_hal_conf.h \
  ../../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_rcc.h \
@@ -39,7 +38,7 @@ Application/User/dshot.o: ../Application/User/dshot.c \
  ../../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_tim_ex.h \
  ../../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_uart.h \
  ../../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_uart_ex.h
-../Application/User/dshot.h:
+../../Inc/dshot.h:
 ../../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal.h:
 ../../Inc/stm32g4xx_hal_conf.h:
 ../../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_rcc.h:

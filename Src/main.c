@@ -21,7 +21,8 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "dshot_rx.h"
+#include <string.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -56,12 +57,27 @@ OPAMP_HandleTypeDef hopamp2;
 OPAMP_HandleTypeDef hopamp3;
 
 TIM_HandleTypeDef htim1;
+TIM_HandleTypeDef htim2;
+DMA_HandleTypeDef hdma_tim2_ch1;
 
 UART_HandleTypeDef huart2;
 DMA_HandleTypeDef hdma_usart2_rx;
 DMA_HandleTypeDef hdma_usart2_tx;
 
 /* USER CODE BEGIN PV */
+DMA_HandleTypeDef hdma_tim2_ch2;
+
+volatile uint16_t g_throttle = 0;       /* 預設油門值 */
+volatile uint16_t last_throttle = -1;       /* 預設油門值 */
+
+
+/* ---- user_global.h (或 main.c 開頭) ---- */
+#include "mc_api.h"          /* MCI_xxx / MC_RunMotorControlTasks 等宣告 */
+#include "mc_type.h"         /* MC_ControlMode_t 及 SPEED_UNIT 定義        */
+
+static bool motor_started = false;   /* 記錄是否已送出 StartMotor */
+static bool ramp_sent     = false;   /* 記錄是否已送出 SpeedRamp */
+
 
 /* USER CODE END PV */
 
@@ -81,6 +97,7 @@ static void MX_OPAMP2_Init(void);
 static void MX_OPAMP3_Init(void);
 static void MX_TIM1_Init(void);
 static void MX_USART2_UART_Init(void);
+static void MX_TIM2_Init(void);
 static void MX_NVIC_Init(void);
 /* USER CODE BEGIN PFP */
 
@@ -88,6 +105,24 @@ static void MX_NVIC_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+static inline int16_t rpm_to_speedUnit(int rpm)
+{
+    return (int16_t)((rpm * SPEED_UNIT) / 60);   // SPEED_UNIT 預設為 10
+}
+
+static inline int16_t conviq_int(int target_mA)
+{
+	return (int)(target_mA *CURRENT_CONV_FACTOR);
+}
+
+
+
+//
+void DMA1_Channel4_IRQHandler(void) //for dma tim2_ch2
+{
+    HAL_DMA_IRQHandler(&hdma_tim2_ch2);
+}
+
 
 /* USER CODE END 0 */
 
@@ -116,6 +151,7 @@ int main(void)
 
   /* USER CODE BEGIN SysInit */
 
+
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
@@ -134,17 +170,98 @@ int main(void)
   MX_TIM1_Init();
   MX_USART2_UART_Init();
   MX_MotorControl_Init();
+  MX_TIM2_Init();
 
   /* Initialize interrupts */
   MX_NVIC_Init();
   /* USER CODE BEGIN 2 */
+//  HAL_NVIC_SetPriority(TIM2_IRQn, 0, 0);
+//  HAL_NVIC_EnableIRQ(TIM2_IRQn);
+  HAL_NVIC_SetPriority(DMA1_Channel4_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel4_IRQn);
 
+
+
+
+  volatile uint8_t g_state = 0;
+  HAL_TIM_Base_Start(&htim1);
+  HAL_TIM_Base_Start(&htim2);
+
+  dshot_rx_init();
+    char buf2[] = " hello After dshot_rx_init \r\n";
+    HAL_UART_Transmit(&huart2, (uint8_t*)buf2, strlen(buf2), HAL_MAX_DELAY);
+    HAL_Delay(1000);
+
+  int16_t target_speed;
+  uint16_t val=0; //for dshot
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
-  {
+ {
+//	  MC_RunMotorControlTasks();
+//	  if (dshot_rx_get_throttle(&val) == 0)
+//	  {
+//	      g_throttle = (val-48)*3;  // 成功解出 DShot，使用真實油門
+//	  }
+//
+////	  dshot_rx_service(&huart2);
+//	    g_state = MCI_GetSTMState(&Mci[M1]);
+//
+//	    /* (A) 若尚未啟動馬達，先送一次 StartMotor ------------------------- */
+//	    if (!motor_started && g_state == IDLE)
+//	    {
+//
+//	        if (MCI_StartMotor(&Mci[M1])) {
+//	            motor_started = true;
+//	        }
+//	    }
+//	    // 更新轉速 (包含第一次啟動與後續油門變化)
+//	    if (motor_started && g_state == RUN)
+//	    {
+//	        if (g_throttle != last_throttle)
+//	        {
+//	            if (g_throttle != 0)
+//	                target_speed = rpm_to_speedUnit(g_throttle);
+//	            else
+//	                target_speed = rpm_to_speedUnit(1000);  // 預設值
+//
+//	            MCI_ExecSpeedRamp(&Mci[M1], target_speed, 1000);
+//	            last_throttle = g_throttle;
+//	        }
+//	    }
+	    /* (B) 一旦估測到馬達已進入 RUN 狀態，再送一次 SpeedRamp ---------- */
+//	    if (motor_started && !ramp_sent)
+//	    {
+//
+//	        if (g_state == RUN)
+//	        {
+//	        	if (g_throttle!=0){
+//	        		target_speed = rpm_to_speedUnit(g_throttle);
+//	        	}
+//	        	else{
+//	        		target_speed = rpm_to_speedUnit(1000);
+//	        	}
+//	            MCI_ExecSpeedRamp(&Mci[M1], target_speed, 2000);
+//	            ramp_sent = true;
+//
+//	        	//return (int)(target_mA * 544.5); 由於輸入的value會 /544.5 所以先*544.5 就代表目標iq
+//	        	//200->A 300-> 400-> 500->1.10 (dc source是不準的 要看實際iq)
+////	        	int16_t target_a = conviq_int(30);
+////	            MCI_ExecTorqueRamp(&Mci[M1], 600 , 2000 /*ms*/);
+////	            ramp_sent = true;
+//	        }
+//	    }
+
+
+
+
+
+
+	    /* (D) 視需要做些低頻打印 / 邏輯                                  */
+//	    HAL_Delay(10);                // 1 ms 節流，保持 1 kHz 主迴圈
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -790,6 +907,123 @@ static void MX_TIM1_Init(void)
 }
 
 /**
+  * @brief TIM2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM2_Init(void)
+{
+
+  /* USER CODE BEGIN TIM2_Init 0 */
+
+  /* USER CODE END TIM2_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_SlaveConfigTypeDef sSlaveConfig = {0};
+  TIM_IC_InitTypeDef sConfigIC = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM2_Init 1 */
+
+  __HAL_RCC_GPIOA_CLK_ENABLE();
+
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
+  GPIO_InitStruct.Pin = GPIO_PIN_15;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+  GPIO_InitStruct.Alternate = GPIO_AF1_TIM2;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+	hdma_tim2_ch1.Init.Request  = DMA_REQUEST_TIM2_CH1;  //g4xx 使用DMAMUX 必須加上這行
+	hdma_tim2_ch2.Init.Request  = DMA_REQUEST_TIM2_CH2;
+
+  /* USER CODE END TIM2_Init 1 */
+  htim2.Instance = TIM2;
+  htim2.Init.Prescaler = 0;
+  htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim2.Init.Period = 65535;
+  htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim2, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_IC_Init(&htim2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sSlaveConfig.SlaveMode = TIM_SLAVEMODE_RESET;
+  sSlaveConfig.InputTrigger = TIM_TS_TI1FP1;
+  sSlaveConfig.TriggerPolarity = TIM_INPUTCHANNELPOLARITY_RISING;
+  sSlaveConfig.TriggerPrescaler = TIM_ICPSC_DIV1;
+  sSlaveConfig.TriggerFilter = 1;
+  if (HAL_TIM_SlaveConfigSynchro(&htim2, &sSlaveConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sConfigIC.ICPolarity = TIM_INPUTCHANNELPOLARITY_RISING;
+  sConfigIC.ICSelection = TIM_ICSELECTION_DIRECTTI;
+  sConfigIC.ICPrescaler = TIM_ICPSC_DIV1;
+  sConfigIC.ICFilter = 1;
+  if (HAL_TIM_IC_ConfigChannel(&htim2, &sConfigIC, TIM_CHANNEL_1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sConfigIC.ICPolarity = TIM_INPUTCHANNELPOLARITY_FALLING;
+  sConfigIC.ICSelection = TIM_ICSELECTION_INDIRECTTI;
+  if (HAL_TIM_IC_ConfigChannel(&htim2, &sConfigIC, TIM_CHANNEL_2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM2_Init 2 */
+//
+  /* 把tim2ch2掛上dma1ch4 */
+  hdma_tim2_ch2.Instance                 = DMA1_Channel4;
+  hdma_tim2_ch2.Init.Direction           = DMA_PERIPH_TO_MEMORY;
+  hdma_tim2_ch2.Init.PeriphInc           = DMA_PINC_DISABLE;
+  hdma_tim2_ch2.Init.MemInc              = DMA_MINC_ENABLE;
+  hdma_tim2_ch2.Init.PeriphDataAlignment = DMA_PDATAALIGN_HALFWORD;
+  hdma_tim2_ch2.Init.MemDataAlignment    = DMA_MDATAALIGN_HALFWORD;
+  hdma_tim2_ch2.Init.Mode                = DMA_NORMAL;//!
+  hdma_tim2_ch2.Init.Priority            = DMA_PRIORITY_HIGH;
+  if (HAL_DMA_Init(&hdma_tim2_ch2) != HAL_OK)
+      Error_Handler();
+  /* 將 Channel4 掛到 TIM2 的 CC2  */
+  __HAL_LINKDMA(&htim2, hdma[TIM_DMA_ID_CC2], hdma_tim2_ch2);
+
+
+  // === TIM2_CH1 對應 DMA1_Channel3 (Rise Edge 用) ===
+  hdma_tim2_ch1.Instance                 = DMA1_Channel3;
+  hdma_tim2_ch1.Init.Direction           = DMA_PERIPH_TO_MEMORY;
+  hdma_tim2_ch1.Init.PeriphInc           = DMA_PINC_DISABLE;
+  hdma_tim2_ch1.Init.MemInc              = DMA_MINC_ENABLE;
+  hdma_tim2_ch1.Init.PeriphDataAlignment = DMA_PDATAALIGN_HALFWORD;
+  hdma_tim2_ch1.Init.MemDataAlignment    = DMA_MDATAALIGN_HALFWORD;
+  hdma_tim2_ch1.Init.Mode                = DMA_NORMAL;
+  hdma_tim2_ch1.Init.Priority            = DMA_PRIORITY_HIGH;
+  if (HAL_DMA_Init(&hdma_tim2_ch1) != HAL_OK)
+      Error_Handler();
+
+  // 連結 TIM2_CH1 → DMA1_Channel3
+  __HAL_LINKDMA(&htim2, hdma[TIM_DMA_ID_CC1], hdma_tim2_ch1);
+
+  /* USER CODE END TIM2_Init 2 */
+
+}
+
+/**
   * @brief USART2 Initialization Function
   * @param None
   * @retval None
@@ -846,6 +1080,11 @@ static void MX_DMA_Init(void)
   /* DMA controller clock enable */
   __HAL_RCC_DMAMUX1_CLK_ENABLE();
   __HAL_RCC_DMA1_CLK_ENABLE();
+
+  /* DMA interrupt init */
+  /* DMA1_Channel3_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel3_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel3_IRQn);
 
 }
 
